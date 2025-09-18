@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thêm Sản Phẩm - C-Market</title>
+  <link rel="stylesheet" href="product.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Một chút style nhỏ cho value + upload */
+    .attribute-item { border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 12px; }
+    .attribute-header { display:flex; align-items:center; gap:16px; }
+    .attribute-header .label-attr { font-weight: 600; }
+    .value-inputs .attr-value-item { display:flex; align-items:center; gap:10px; margin:6px 0; }
+    .uploaded-filename { font-size: 12px; color:#666; }
+    .table-container { overflow:auto; }
+    .empty-state { text-align:center; padding:20px; color:#777; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <h1><i class="fas fa-plus-circle"></i> Thêm Sản Phẩm Mới</h1>
+      <p>Quản lý và thêm sản phẩm mới vào cửa hàng của bạn</p>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('product')">
+        <i class="fas fa-cube"></i> Thông tin sản phẩm
+      </div>
+      <div class="tab" onclick="showTab('attribute')">
+        <i class="fas fa-list"></i> Thuộc tính
+      </div>
+      <div class="tab" onclick="showTab('variant')">
+        <i class="fas fa-layer-group"></i> Biến thể
+      </div>
+    </div>
+
+    <!-- TAB: PRODUCT -->
+    <div id="product" class="tab-content active">
+      <div class="form-section">
+        <h2><i class="fas fa-info-circle"></i> Thông tin cơ bản</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="productName"><i class="fas fa-tag"></i> Tên sản phẩm <span class="required">*</span></label>
+            <input type="text" id="productName" placeholder="Nhập tên sản phẩm" required />
+          </div>
+          <div class="form-group">
+            <label for="categorySelect"><i class="fas fa-folder"></i> Danh mục <span class="required">*</span></label>
+            <select id="categorySelect" required>
+              <option value="">Chọn danh mục</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2><i class="fas fa-align-left"></i> Mô tả sản phẩm</h2>
+        <div class="form-group">
+          <textarea id="productDesc" placeholder="Mô tả chi tiết về sản phẩm..." rows="5"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2><i class="fas fa-money-bill-wave"></i> Giá cả & Tình trạng</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="productPrice"><i class="fas fa-dollar-sign"></i> Giá gốc <span class="required">*</span></label>
+            <input type="number" id="productPrice" placeholder="0" min="0" required />
+          </div>
+          <div class="form-group">
+            <label for="productActive"><i class="fas fa-power-off"></i> Trạng thái</label>
+            <select id="productActive">
+              <option value="true">Kích hoạt</option>
+              <option value="false">Ẩn</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2><i class="fas fa-images"></i> Hình ảnh sản phẩm</h2>
+        <div class="form-group">
+          <div class="file-upload-area" id="imageUploadArea">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Kéo thả ảnh vào đây hoặc <span>chọn tệp</span></p>
+            <small>Hỗ trợ: JPG, PNG, GIF (tối đa 5MB mỗi ảnh)</small>
+            <input type="file" id="productImage" accept="image/*" />
+          </div>
+          <div id="imagePreview" class="image-preview"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="resetForm()">
+          <i class="fas fa-redo"></i> Làm mới
+        </button>
+        <button type="button" class="btn btn-primary" onclick="submitProduct()">
+          <i class="fas fa-save"></i> Lưu và tiếp tục
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB: ATTRIBUTE -->
+   <div id="attribute" class="tab-content">
+  <div class="form-section">
+    <h2><i class="fas fa-list-ul"></i> Quản lý thuộc tính</h2>
+    <p class="section-description">Chọn và nhập giá trị cho các thuộc tính đã được hệ thống định nghĩa</p>
+    
+    <div id="attributeArea" class="attribute-area">
+      <div class="empty-state">
+        <i class="fas fa-list-alt"></i>
+        <p>Đang tải thuộc tính...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn btn-secondary" onclick="showTab('product')">
+      <i class="fas fa-arrow-left"></i> Quay lại
+    </button>
+    <button type="button" class="btn btn-primary" onclick="generateVariants()">
+      <i class="fas fa-cogs"></i> Tạo biến thể
+    </button>
+  </div>
+</div>
+
+
+    <!-- TAB: VARIANT -->
+    <div id="variant" class="tab-content">
+      <div class="form-section">
+        <h2><i class="fas fa-layer-group"></i> Quản lý biến thể</h2>
+        <p class="section-description">Các biến thể sinh theo tổ hợp thuộc tính. Ảnh sẽ dùng chung theo giá trị của thuộc tính bạn đã chọn “Dùng làm ảnh”.</p>
+
+        <div class="table-container">
+          <table id="variantTable">
+            <thead>
+              <tr>
+                <th>Thuộc tính</th>
+                <th>SKU</th>
+                <th>Giá (₫)</th>
+                <th>Số lượng</th>
+                <th>Ảnh</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="empty-row">
+                <td colspan="6">
+                  <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>Chưa có biến thể nào được tạo</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="showTab('attribute')">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </button>
+        <button type="button" class="btn btn-success" onclick="submitVariants()">
+          <i class="fas fa-check-circle"></i> Hoàn tất
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/config.js"></script>
+  <script src="product.js"></script>
+</body>
+</html>

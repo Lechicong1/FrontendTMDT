@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi tiết sản phẩm | C-Market</title>
+  <!-- CSS chung -->
+  <link rel="stylesheet" href="/component/css/component.css">
+  <!-- CSS riêng cho trang chi tiết sản phẩm -->
+  <link rel="stylesheet" href="/product/productDetails.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Header component -->
+  <div id="header"></div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="container">
+      <a href="/">Trang chủ</a>
+      <i class="fas fa-chevron-right"></i>
+      <a href="#" id="categoryBreadcrumb">Danh mục</a>
+      <i class="fas fa-chevron-right"></i>
+      <span id="productBreadcrumb">Sản phẩm</span>
+    </div>
+  </div>
+
+  <!-- Product Details Section -->
+  <section class="product-details">
+    <div class="container">
+      <div class="product-details-content" id="productDetailsContent">
+        <div class="loading">Đang tải thông tin sản phẩm...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Products Section -->
+  <section class="related-products">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fas fa-fire"></i>
+          <h2>Sản phẩm liên quan</h2>
+        </div>
+        <a href="#" class="see-all">Xem tất cả <i class="fas fa-chevron-right"></i></a>
+      </div>
+      <div class="product-grid" id="relatedProducts">
+        <!-- Related products will be loaded here -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer component -->
+  <div id="footer"></div>
+
+  <!-- Scripts -->
+  <script src="/component/js/auth.js"></script>
+  <script>
+    loadComponent("header", "/component/html/header.html");
+    loadComponent("footer", "/component/html/footer.html");
+  </script>
+  <script src="/api.js"></script>
+  <script src="/product/productDetails.js"></script>
+</body>
+</html>

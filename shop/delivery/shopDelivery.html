@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Đơn Vị Vận Chuyển - C-Market</title>
+    <link rel="stylesheet" href="shopDelivery.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <img src="https://via.placeholder.com/150x50/2D5C8F/ffffff?text=C-Market+Seller" alt="C-Market Seller Logo">
+                    <span>Quản Lý Đơn Vị Vận Chuyển</span>
+                </div>
+                <div class="admin-info">
+                    <span id="username-display"><i class="fas fa-user-circle"></i> Xin chào, Seller</span>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="delivery-management">
+            <div class="page-header">
+                <h1><i class="fas fa-truck-loading"></i> Quản Lý Đơn Vị Vận Chuyển</h1>
+                <p>Chọn các đơn vị vận chuyển mà bạn muốn sử dụng cho cửa hàng của mình</p>
+            </div>
+            
+            <div id="notification" class="notification"></div>
+            
+            <div class="delivery-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-shipping-fast"></i> Đơn Vị Vận Chuyển Khả Dụng</h2>
+                    <p>Kích hoạt các đơn vị vận chuyển bạn muốn sử dụng cho đơn hàng của cửa hàng</p>
+                </div>
+                
+                <div class="delivery-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="activeCount">0</span>
+                        <span class="stat-label">Đang kích hoạt</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalCount">0</span>
+                        <span class="stat-label">Tổng số đơn vị</span>
+                    </div>
+                </div>
+                
+                <div id="delivery-list" class="delivery-list">
+                    <!-- Danh sách đơn vị vận chuyển sẽ được thêm ở đây bằng JavaScript -->
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Đang tải danh sách đơn vị vận chuyển...</p>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                   
+                    <button type="button" id="updateButton" class="btn btn-primary" onclick="updateDeliveryServices()">
+                        <i class="fas fa-save"></i> Cập nhật cài đặt
+                    </button>
+                </div>
+            </div>
+
+            <div class="support-info">
+                <p><i class="fas fa-question-circle"></i> Cần hỗ trợ thêm về đơn vị vận chuyển? 
+                    <a href="mailto:support@c-market.com">Liên hệ hỗ trợ</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    <script src="/config.js"></script>
+    <script src="shopDelivery.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tìm kiếm sản phẩm | C-Market</title>
+  <!-- CSS chung -->
+  <link rel="stylesheet" href="/component/css/component.css">
+  <!-- CSS riêng cho trang search -->
+  <link rel="stylesheet" href="/index/search.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Header component -->
+  <div id="header"></div>
+
+  <!-- Search Header -->
+  <div class="search-header">
+    <div class="container">
+      <div class="search-results-info">
+        <div class="search-page-title" id="searchTitle">
+          Kết quả tìm kiếm cho: <strong id="searchQueryText"></strong>
+        </div>
+        <div id="resultsCount"></div>
+      </div>
+      
+      <div class="filters-container">
+        <div class="filter-group">
+          <span class="filter-label">Sắp xếp:</span>
+          <select class="filter-select" id="sortSelect">
+            <option value="price_asc">Giá thấp đến cao</option>
+            <option value="price_desc">Giá cao đến thấp</option>
+            <option value="newest">Mới nhất</option>
+            <option value="popular">Bán chạy</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <span class="filter-label">Danh mục:</span>
+          <select class="filter-select" id="categorySelect">
+            <option value="">Tất cả danh mục</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <span class="filter-label">Địa chỉ:</span>
+          <select class="filter-select" id="addressSelect">
+            <option value="">Tất cả địa chỉ</option>
+            <option value="Hà Nội">Hà Nội</option>
+            <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+            <option value="Đà Nẵng">Đà Nẵng</option>
+            <option value="Cần Thơ">Cần Thơ</option>
+            <option value="Hải Phòng">Hải Phòng</option>
+          </select>
+        </div>
+        
+        <button class="filter-button" id="applyFilters">Áp dụng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Results -->
+  <section class="products">
+    <div class="container">
+      <div class="product-grid" id="products-container">
+        <div class="loading">Đang tải sản phẩm...</div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </section>
+
+  <!-- Footer component -->
+  <div id="footer"></div>
+
+  <!-- Scripts -->
+
+  <script src="/component/js/auth.js"></script>
+   <script>
+    loadComponent("header", "/component/html/header.html");
+    loadComponent("footer", "/component/html/footer.html");
+  </script>
+  <script src="/api.js"></script>
+     <script src="search.js"></script>
+
+   
+
+</body>
+</html>

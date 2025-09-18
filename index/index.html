@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C-Market | Sàn thương mại điện tử hiện đại</title>
+   <link rel="stylesheet" href="/component/css/component.css">
+  <link rel="stylesheet" href="/index/index.css">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header component -->
+  <div id="header"></div>
+    <!-- Navigation -->
+<nav class="main-nav">
+  <div class="container">
+    <div class="categories-toggle"><i class="fas fa-bars"></i><span>Danh mục</span></div>
+    <ul class="nav-links">
+      <li><a href="/index.html">Trang chủ</a></li>
+      <li><a href="/search.html">Sản phẩm</a></li>
+      <li><a href="#">Khuyến mãi</a></li>
+      <li><a href="../SellerRegiter/sellerRegiter.html">Đăng ký bán hàng</a></li>
+    </ul>
+  </div>
+</nav>
+  <!-- Banner -->
+  <section class="banner">
+    <div class="container">
+      <div class="banner-content">
+        <div class="category-sidebar">
+          <div class="category-item"><i class="fas fa-tshirt"></i><span>Thời Trang</span></div>
+          <div class="category-item"><i class="fas fa-mobile-alt"></i><span>Điện Thoại</span></div>
+          <div class="category-item"><i class="fas fa-laptop"></i><span>Máy Tính</span></div>
+          <div class="category-item"><i class="fas fa-home"></i><span>Nhà Cửa</span></div>
+          <div class="category-item"><i class="fas fa-utensils"></i><span>Đồ Gia Dụng</span></div>
+          <div class="category-item"><i class="fas fa-heart"></i><span>Sức Khỏe</span></div>
+          <div class="category-item"><i class="fas fa-car"></i><span>Xe Cộ</span></div>
+          <div class="category-item"><i class="fas fa-gamepad"></i><span>Đồ Chơi</span></div>
+        </div>
+        <div class="banner-slider">
+          <img src="/img/banner.jpg" alt="C-Market Banner" class="banner-image">
+          <div class="banner-controls">
+            <button class="banner-prev"><i class="fas fa-chevron-left"></i></button>
+            <button class="banner-next"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Flash Sale -->
+  <section class="flash-sale">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-title">
+          <h2><i class="fas fa-bolt"></i> Deal Sốc</h2>
+          <div class="countdown">
+            <span class="countdown-label">Kết thúc trong</span>
+            <div class="countdown-timer">
+              <span class="hours">05</span><span>:</span>
+              <span class="minutes">47</span><span>:</span>
+              <span class="seconds">32</span>
+            </div>
+          </div>
+        </div>
+        <a href="#" class="see-all">Xem tất cả <i class="fas fa-chevron-right"></i></a>
+      </div>
+      <div class="flash-sale-products">
+        <div class="flash-product">
+          <div class="product-image-wrapper">
+            <img src="https://via.placeholder.com/150/2D5C8F/ffffff?text=Sản+phẩm" alt="Flash Sale Product">
+          </div>
+          <div class="flash-price">
+            <span class="current-price">199.000đ</span>
+            <span class="discount">-25%</span>
+          </div>
+          <div class="progress-bar"><div class="progress" style="width: 70%;"></div></div>
+        </div>
+        <!-- Thêm sản phẩm khác -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories">
+    <div class="container">
+      <div class="section-header"><h2>Danh Mục Nổi Bật</h2></div>
+      <div class="categories-grid" id="categories-container">
+        <div class="loading">Đang tải danh mục...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Suggested Products -->
+  <section class="products">
+    <div class="container">
+      <div class="section-header"><h2>Gợi Ý Hôm Nay</h2></div>
+      <div class="product-filters">
+        <div class="filter-group">
+          <select class="filter-select">
+            <option>Sắp xếp</option>
+            <option>Giá tăng dần</option>
+            <option>Giá giảm dần</option>
+            <option>Mới nhất</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <input type="text" class="search-filter" placeholder="Lọc sản phẩm...">
+          <button class="search-btn">Tìm</button>
+        </div>
+      </div>
+      <div class="product-grid" id="products-container">
+        <div class="loading">Đang tải sản phẩm...</div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </section>
+
+  <!-- Footer component -->
+  <div id="footer"></div>
+<!-- Scripts chung -->
+ <script src="index.js"></script> 
+<script src="/config.js" defer></script>
+<script src="/api.js" defer></script>
+<script src="/component/js/auth.js" defer></script>
+
+<script defer>
+  // Chỉ chạy khi DOM parse xong và file chung đã sẵn sàng
+  document.addEventListener("DOMContentLoaded", () => {
+    loadComponent("header", "/component/html/header.html");
+    loadComponent("footer", "/component/html/footer.html");
+  });
+</script>
+
+<!-- Script riêng cho Index, phải để cuối -->
+
+
+</body>
+</html>

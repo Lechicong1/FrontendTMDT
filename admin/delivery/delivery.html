@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Đơn Vị Vận Chuyển - C-Market Admin</title>
+    <link rel="stylesheet" href="delivery.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <img src="https://via.placeholder.com/150x50/2D5C8F/ffffff?text=C-Market+Admin" alt="C-Market Admin Logo">
+                    <span>Quản Lý Đơn Vị Vận Chuyển</span>
+                </div>
+                <div class="admin-info">
+                    <span id="username-display"><i class="fas fa-user-shield"></i> Xin chào, Admin</span>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="delivery-management">
+            <h1><i class="fas fa-truck"></i> Quản Lý Đơn Vị Vận Chuyển</h1>
+            
+            <div id="notification" class="notification"></div>
+            
+            <div class="action-bar">
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    <i class="fas fa-plus-circle"></i> Thêm đơn vị mới
+                </button>
+                <button class="btn btn-secondary" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Làm mới
+                </button>
+            </div>
+            
+            <div class="delivery-table-container">
+                <table class="delivery-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Logo</th>
+                            <th>Tên đơn vị</th>
+                            <th>Mã</th>
+                            <th>Token</th>
+                            <th>API Tính phí</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="delivery-list">
+                        <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                        <tr>
+                            <td colspan="8">
+                                <div class="loading">
+                                    <i class="fas fa-spinner"></i>
+                                    <p>Đang tải dữ liệu...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-truck-loading"></i>
+                <p>Chưa có đơn vị vận chuyển nào</p>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    <i class="fas fa-plus-circle"></i> Thêm đơn vị đầu tiên
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Thêm/Sửa -->
+    <div id="deliveryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-truck"></i> Thêm đơn vị vận chuyển</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="deliveryForm" class="modal-body">
+                <input type="hidden" id="deliveryId">
+                
+                <div class="form-group">
+                    <label for="name">
+                        <i class="fas fa-signature"></i> Tên đơn vị <span class="required">*</span>
+                    </label>
+                    <input type="text" id="name" required placeholder="Nhập tên đơn vị vận chuyển">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">
+                        <i class="fas fa-align-left"></i> Mô tả
+                    </label>
+                    <textarea id="description" rows="3" placeholder="Nhập mô tả về đơn vị vận chuyển"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="code">
+                        <i class="fas fa-code"></i> Mã
+                    </label>
+                    <input type="text" id="code" placeholder="Nhập mã đơn vị">
+                </div>
+                
+                <div class="form-group">
+                    <label for="token">
+                        <i class="fas fa-key"></i> Token
+                    </label>
+                    <input type="text" id="token" placeholder="Nhập token API">
+                </div>
+                
+                <div class="form-group">
+                    <label for="apiUrlCalculateFee">
+                        <i class="fas fa-calculator"></i> API Tính phí <span class="required">*</span>
+                    </label>
+                    <input type="url" id="apiUrlCalculateFee" required placeholder="https://api.example.com/calculate-fee">
+                </div>
+                
+                <div class="form-group">
+                    <label for="apiUrlCreateOrder">
+                        <i class="fas fa-plus-square"></i> API Tạo đơn
+                    </label>
+                    <input type="url" id="apiUrlCreateOrder" placeholder="https://api.example.com/create-order">
+                </div>
+                
+                <div class="form-group">
+                    <label for="apiUrlTracking">
+                        <i class="fas fa-map-marker-alt"></i> API Theo dõi
+                    </label>
+                    <input type="url" id="apiUrlTracking" placeholder="https://api.example.com/tracking">
+                </div>
+                
+                <div class="form-group">
+                    <label for="service_type_id">
+                        <i class="fas fa-cog"></i> ID Loại dịch vụ
+                    </label>
+                    <input type="number" id="service_type_id" placeholder="123">
+                </div>
+                
+                <div class="form-group">
+                    <label for="logoFile">
+                        <i class="fas fa-image"></i> Logo đơn vị
+                    </label>
+                    <div class="file-upload" onclick="document.getElementById('logoFile').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Nhấp để tải lên logo</p>
+                        <span>Hỗ trợ: JPG, PNG (tối đa 2MB)</span>
+                    </div>
+                    <input type="file" id="logoFile" class="file-input" accept=".jpg,.jpeg,.png">
+                    <div id="fileName" class="file-name">Chưa có tệp nào được chọn</div>
+                    <div id="logoPreview" class="logo-preview" style="display: none; margin-top: 10px;">
+                        <img id="previewImage" src="" alt="Logo preview" style="max-width: 100px; max-height: 100px; border-radius: 8px;">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="active" checked>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-power-off"></i> Kích hoạt đơn vị
+                    </label>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu thông tin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận xóa -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content confirm-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h2>
+                <span class="close" onclick="closeDeleteModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa đơn vị vận chuyển "<span id="deleteDeliveryName" class="delete-name"></span>"?</p>
+                <p class="warning-text"><i class="fas fa-exclamation-circle"></i> Thao tác này không thể hoàn tác.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xem chi tiết -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-eye"></i> Chi tiết đơn vị vận chuyển</h2>
+                <span class="close" onclick="closeViewModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-view">
+                    <div class="detail-row">
+                        <div class="detail-label">ID:</div>
+                        <div class="detail-value" id="viewId"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Tên đơn vị:</div>
+                        <div class="detail-value" id="viewName"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Mô tả:</div>
+                        <div class="detail-value" id="viewDescription"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Mã:</div>
+                        <div class="detail-value" id="viewCode"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Token:</div>
+                        <div class="detail-value" id="viewToken"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">API Tính phí:</div>
+                        <div class="detail-value" id="viewApiCalculate"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">API Tạo đơn:</div>
+                        <div class="detail-value" id="viewApiCreate"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">API Theo dõi:</div>
+                        <div class="detail-value" id="viewApiTracking"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">ID Loại dịch vụ:</div>
+                        <div class="detail-value" id="viewServiceType"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Trạng thái:</div>
+                        <div class="detail-value" id="viewStatus"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeViewModal()">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/config.js"></script>
+    <script src="delivery.js"></script>
+</body>
+</html>

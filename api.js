@@ -1,0 +1,1 @@
+window.Base_Url = "Http://localhost:8080"
