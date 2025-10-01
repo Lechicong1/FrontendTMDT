@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán | C-Market</title>
+  <link rel="stylesheet" href="/component/css/component.css">
+  <link rel="stylesheet" href="/Checkout/checkout.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div id="header"></div>
+
+  <section class="checkout">
+    <div class="container">
+      <h1 class="page-title">Xác nhận đơn hàng</h1>
+      <div id="addressSection"></div>
+      <div id="checkoutContent" class="checkout-content"></div>
+    </div>
+  </section>
+
+  <div id="footer"></div>
+
+  <!-- Modal thêm địa chỉ -->
+  <div id="addressModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Thêm địa chỉ nhận hàng</h2>
+      <form id="addressForm">
+        <input type="text" id="recipientName" placeholder="Tên người nhận" required>
+        <input type="text" id="recipientPhone" placeholder="Số điện thoại" required>
+        <select id="province" required></select>
+        <select id="district" required></select>
+        <select id="ward" required></select>
+        <input type="text" id="streetAddress" placeholder="Số nhà, đường" required>
+        <button type="submit" class="btn btn-primary">Lưu địa chỉ</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/component/js/auth.js"></script>
+  <script src="/api.js"></script>
+  <script src="/config.js"></script>
+  <script src="/order/checkout/checkout.js"></script>
+</body>
+</html>

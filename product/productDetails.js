@@ -1,7 +1,7 @@
 // Biến toàn cục
-let productData = null;
-let selectedVariant = null;
-let selectedAttributes = {};
+let productData = null;        // chứa toàn bộ product
+let selectedVariant = null;    // biến thể đang chọn
+let selectedAttributes = {};   // map attrName → value
 let currentQuantity = 1;
 
 /* ========= INIT ========= */
@@ -20,92 +20,55 @@ function getProductIdFromUrl() {
   return urlParams.get("id");
 }
 
-/* ========= CHUẨN HÓA DỮ LIỆU ========= */
-function normalizeVariants(rawData) {
-  const variants = {};
-  rawData.forEach(row => {
-    if (!variants[row.variantId]) {
-      variants[row.variantId] = {
-        variantId: row.variantId,
-        productImage: row.productImage,
-        variantImage: row.variantImage,
-        variantQuantity: row.variantQuantity,
-        priceVariant: row.priceVariant,
-        nameProduct: row.nameProduct,
-        nameCategory: row.nameCategory,
-        description: row.description,
-        attributes: {}
-      };
-    }
-    if (row.attributeType && row.value) {
-      variants[row.variantId].attributes[row.attributeType] = row.value;
-    }
-  });
-  return Object.values(variants);
-}
-
 /* ========= LOAD PRODUCT ========= */
 async function loadProductDetails(productId) {
   try {
-    console.log("Đang tải chi tiết sản phẩm với ID:", productId);
+    console.log("Đang tải chi tiết sản phẩm:", productId);
 
-    const response = await fetch(`${window.Base_Url}/product/details/${productId}`);
-    const data = await response.json();
+    const res = await fetch(`${window.Base_Url}/product/details/${productId}`);
+    const data = await res.json();
 
     console.log("Dữ liệu nhận được:", data);
 
-    if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-      productData = normalizeVariants(data.data);
+    if (data.success && data.data) {
+      productData = data.data;
       renderProductDetails();
     } else {
       showError("Không tìm thấy thông tin sản phẩm");
     }
   } catch (error) {
-    console.error("❌ Lỗi khi tải chi tiết sản phẩm:", error);
+    console.error("❌ Lỗi khi tải chi tiết:", error);
     showError("Đã xảy ra lỗi khi tải thông tin sản phẩm");
   }
 }
 
 /* ========= RENDER PRODUCT ========= */
 function renderProductDetails() {
-  if (!productData || productData.length === 0) return;
+  if (!productData) return;
 
-  const firstVariant = productData[0];
   const container = document.getElementById("productDetailsContent");
+  const firstImage = productData.productImage;
 
-  // Cập nhật breadcrumb
-  document.getElementById("categoryBreadcrumb").textContent = firstVariant.nameCategory;
-  document.getElementById("categoryBreadcrumb").href =
-    `/search.html?category=${firstVariant.idProduct}&categoryName=${encodeURIComponent(firstVariant.nameCategory)}`;
-  document.getElementById("productBreadcrumb").textContent = firstVariant.nameProduct;
-
-  // Gom nhóm attribute
-  const attributeGroups = extractAttributeGroups();
+  // Gom nhóm thuộc tính từ tất cả variants
+  const attributeGroups = extractAttributeGroups(productData.variants);
 
   // Render HTML
-  container.innerHTML = `
+  container.innerHTML = `   
     <div class="product-main">
       <div class="product-images">
         <div class="main-image">
-          <img src="${firstVariant.variantImage || firstVariant.productImage}" 
-              alt="${firstVariant.nameProduct}" 
-              id="mainProductImage"
-              onerror="this.src='https://via.placeholder.com/400x400'">
+          <img src="${firstImage}" alt="${productData.productName}" id="mainProductImage"
+               onerror="this.src='https://via.placeholder.com/400x400'">
         </div>
       </div>
       
       <div class="product-info">
-        <h1 class="product-title">${firstVariant.nameProduct}</h1>
-        <div class="product-category">Danh mục: ${firstVariant.nameCategory}</div>
-
-        <div class="product-description">
-          ${firstVariant.description || "Sản phẩm chất lượng cao"}
-        </div>
+        <h1 class="product-title">${productData.productName}</h1>
+        <div class="product-category">Danh mục: ${productData.category?.name || ''}</div>
+        <div class="product-description">${productData.description || "Sản phẩm chất lượng cao"}</div>
 
         <div class="product-price">
-          <span class="current-price" id="currentPrice">${formatPrice(firstVariant.priceVariant)}đ</span>
-          <span class="original-price" id="originalPrice">${formatPrice(firstVariant.priceVariant * 1.2)}đ</span>
-          <span class="discount-badge">-20%</span>
+          <span class="current-price" id="currentPrice">${formatPrice(productData.basePrice)}đ</span>
         </div>
 
         ${renderAttributeGroups(attributeGroups)}
@@ -117,7 +80,7 @@ function renderProductDetails() {
             <input type="number" class="quantity-input" id="quantityInput" value="1" min="1" max="100" onchange="validateQuantity()">
             <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
           </div>
-          <span class="stock-info" id="stockInfo">Còn ${firstVariant.variantQuantity} sản phẩm</span>
+          <span class="stock-info" id="stockInfo">Vui lòng chọn biến thể</span>
         </div>
 
         <div class="action-buttons">
@@ -131,26 +94,24 @@ function renderProductDetails() {
       </div>
     </div>
   `;
-
-  selectedVariant = firstVariant;
-  updateVariantSelection();
 }
 
-/* ========= ATTRIBUTE HANDLING ========= */
-function extractAttributeGroups() {
-  const groups = {}; // { color:[{value,image}], size:[{value,image?}] }
+/* ========= XỬ LÝ ATTRIBUTE ========= */
+function extractAttributeGroups(variants) {
+  const groups = {}; // { ram:[{value, imageVariant}], size:[...] }
 
-  productData.forEach(variant => {
-    for (const [type, value] of Object.entries(variant.attributes)) {
-      if (!groups[type]) groups[type] = [];
-      if (!groups[type].some(v => v.value === value)) {
-        groups[type].push({
-          value,
-          image: type === "color" ? variant.variantImage : null
+  variants.forEach(v => {
+    v.attributes.forEach(attr => {
+      if (!groups[attr.attributeName]) groups[attr.attributeName] = [];
+      if (!groups[attr.attributeName].some(a => a.value === attr.value)) {
+        groups[attr.attributeName].push({
+          value: attr.value,
+          image: attr.imageVariant || null
         });
       }
-    }
+    });
   });
+
   return groups;
 }
 
@@ -163,9 +124,9 @@ function renderAttributeGroups(attributeGroups) {
           <span class="variant-label">${type.toUpperCase()}:</span>
           <div class="variant-options" data-type="${type}">
             ${values.map(v => `
-              <div class="variant-option" 
-                   data-type="${type}" 
-                   data-value="${v.value}" 
+              <div class="variant-option"
+                   data-type="${type}"
+                   data-value="${v.value}"
                    data-image="${v.image || ""}">
                 ${v.value}
               </div>`).join("")}
@@ -190,54 +151,44 @@ function selectVariantOption(option) {
   const value = option.dataset.value;
   const image = option.dataset.image;
 
-  // bỏ chọn cùng type
+  // bỏ chọn cùng nhóm
   document.querySelectorAll(`.variant-option[data-type="${type}"]`).forEach(opt => opt.classList.remove("selected"));
   option.classList.add("selected");
 
   selectedAttributes[type] = value;
 
-  // Nếu chọn màu (hoặc attr có ảnh) → đổi ảnh ngay
+  // đổi ảnh nếu có
   if (image) {
-    document.getElementById("mainProductImage").src = image;
+    document.getElementById("mainProductImage").src =image;
   }
 
   findMatchingVariant();
-}
+}                                                   
 
 /* ========= TÌM BIẾN THỂ ========= */
 function findMatchingVariant() {
-  const matched = productData.find(variant =>
-    Object.entries(selectedAttributes).every(([t, v]) => variant.attributes[t] === v)
+  const matched = productData.variants.find(variant =>
+    Object.entries(selectedAttributes).every(([t, v]) =>
+      variant.attributes.some(attr => attr.attributeName === t && attr.value === v)
+    )
   );
 
   if (matched) {
     selectedVariant = matched;
     updateVariantSelection();
-    updateProductDisplay();
   }
 }
 
 /* ========= UPDATE UI ========= */
-function updateProductDisplay() {
+function updateVariantSelection() {
   if (!selectedVariant) return;
 
-  const mainImage = document.getElementById("mainProductImage");
-  if (mainImage && selectedVariant.variantImage) {
-    mainImage.src = selectedVariant.variantImage;
-  }
+  document.getElementById("currentPrice").textContent = `${formatPrice(selectedVariant.price)}đ`;
+  document.getElementById("stockInfo").textContent = `Còn ${selectedVariant.quantity} sản phẩm`;
 
-  document.getElementById("currentPrice").textContent = `${formatPrice(selectedVariant.priceVariant)}đ`;
-  document.getElementById("originalPrice").textContent = `${formatPrice(selectedVariant.priceVariant * 1.2)}đ`;
-}
-
-function updateVariantSelection() {
-  const stockInfo = document.getElementById("stockInfo");
-  if (stockInfo && selectedVariant) {
-    stockInfo.textContent = `Còn ${selectedVariant.variantQuantity} sản phẩm`;
-    if (selectedVariant.variantQuantity === 0) {
-      stockInfo.classList.add("out");
-      stockInfo.textContent = "Hết hàng";
-    }
+  if (selectedVariant.quantity === 0) {
+    document.getElementById("stockInfo").classList.add("out");
+    document.getElementById("stockInfo").textContent = "Hết hàng";
   }
 }
 
@@ -246,8 +197,8 @@ function changeQuantity(amount) {
   const input = document.getElementById("quantityInput");
   let newVal = parseInt(input.value) + amount;
   if (newVal < 1) newVal = 1;
-  if (selectedVariant && newVal > selectedVariant.variantQuantity) {
-    newVal = selectedVariant.variantQuantity;
+  if (selectedVariant && newVal > selectedVariant.quantity) {
+    newVal = selectedVariant.quantity;
   }
   input.value = newVal;
   currentQuantity = newVal;
@@ -257,8 +208,8 @@ function validateQuantity() {
   const input = document.getElementById("quantityInput");
   let val = parseInt(input.value);
   if (isNaN(val) || val < 1) val = 1;
-  if (selectedVariant && val > selectedVariant.variantQuantity) {
-    val = selectedVariant.variantQuantity;
+  if (selectedVariant && val > selectedVariant.quantity) {
+    val = selectedVariant.quantity;
   }
   input.value = val;
   currentQuantity = val;
@@ -297,4 +248,47 @@ function showError(message) {
 
 function formatPrice(price) {
   return new Intl.NumberFormat("vi-VN").format(price);
+}
+/* ========= CART / BUY ========= */
+async function addToCart() {
+  if (!selectedVariant) return alert("Vui lòng chọn biến thể trước!");
+  
+  // Kiểm tra đăng nhập
+  const userInfo = localStorage.getItem('Info');
+  if (!userInfo) {
+    alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
+    window.location.href = '/login/login.html';
+    return;
+  }
+  
+  try {
+    const cartRequest = {
+      variantNew: selectedVariant.variantId,
+      quantityItem: currentQuantity
+    };
+    
+    const data = await apiCall("/Cart","POST",cartRequest)
+    
+  
+    
+    if (data.success) {
+      alert("Đã thêm vào giỏ hàng thành công!");
+      // Cập nhật số lượng trong giỏ hàng trên header nếu có
+      updateCartCount();
+    } else {
+      alert("Có lỗi xảy ra khi thêm vào giỏ hàng: " + data.message);
+    }
+  } catch (error) {
+    console.error("❌ Lỗi khi thêm vào giỏ hàng:", error);
+    alert("Đã xảy ra lỗi khi thêm vào giỏ hàng");
+  }
+}
+
+// Hàm cập nhật số lượng sản phẩm trong giỏ hàng trên header
+function updateCartCount() {
+  const cartCountElement = document.getElementById('cartCount');
+  if (cartCountElement) {
+    const currentCount = parseInt(cartCountElement.textContent) || 0;
+    cartCountElement.textContent = currentCount + currentQuantity;
+  }
 }

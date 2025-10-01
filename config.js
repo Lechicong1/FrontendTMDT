@@ -1,7 +1,7 @@
 // const origins = window.location.origin;
 
 // const apiBaseUrl = origins + "/api";
-const apiBaseUrl = "Http://localhost:8080"
+const apiBaseUrl = "http://localhost:8080"
 const API = apiBaseUrl;
 // Hàm gọi API với xử lý token trong sessionStorage
 async function apiCall(endpoint, method = "GET", data = null, options = {}) {
@@ -16,6 +16,7 @@ async function apiCall(endpoint, method = "GET", data = null, options = {}) {
   }
 
   const token = localStorage.getItem("authToken");
+  console.log("token " , token)
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -60,8 +61,8 @@ async function apiCall(endpoint, method = "GET", data = null, options = {}) {
 
 // Đăng xuất: xóa session/localStorage và điều hướng
 async function logout() {
-  sessionStorage.removeItem("token"); // Xóa token khi logout
-  sessionStorage.removeItem("Role");
-  sessionStorage.removeItem("userInfo");
+  localStorage.removeItem("token"); // Xóa token khi logout
+  localStorage.removeItem("Role");
+  localStorage  .removeItem("userInfo");
   window.location.href = "trangchu.html";
 }

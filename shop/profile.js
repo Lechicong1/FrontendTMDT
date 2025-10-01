@@ -1,34 +1,90 @@
-
+// ==========================
 // Hiển thị thông báo
+// ==========================
 function showNotification(message, type) {
     const notification = document.getElementById('notification');
     notification.textContent = message;
     notification.className = `notification ${type}`;
     notification.style.display = 'block';
-    
-    // Ẩn thông báo sau 5 giây
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 5000);
+    setTimeout(() => notification.style.display = 'none', 5000);
 }
 
-// Tải thông tin shop
+// ==========================
+// API địa phương VN
+// ==========================
+async function loadProvinces(selectedProvince = "") {
+    try {
+        const res = await fetch("https://provinces.open-api.vn/api/p/");
+        const data = await res.json();
+        const select = document.getElementById("province");
+
+        select.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
+        data.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.code;
+            opt.textContent = p.name;
+            if (p.name === selectedProvince) opt.selected = true;
+            select.appendChild(opt);
+        });
+    } catch (e) {
+        console.error("Lỗi load provinces:", e);
+    }
+}
+
+async function loadDistricts(provinceCode, selectedDistrict = "") {
+    try {
+        const res = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
+        const data = await res.json();
+        const select = document.getElementById("district");
+
+        select.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+        data.districts.forEach(d => {
+            const opt = document.createElement("option");
+            opt.value = d.code;
+            opt.textContent = d.name;
+            if (d.name === selectedDistrict) opt.selected = true;
+            select.appendChild(opt);
+        });
+    } catch (e) {
+        console.error("Lỗi load districts:", e);
+    }
+}
+
+async function loadWards(districtCode, selectedWard = "") {
+    try {
+        const res = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+        const data = await res.json();
+        const select = document.getElementById("ward");
+
+        select.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        data.wards.forEach(w => {
+            const opt = document.createElement("option");
+            opt.value = w.code;
+            opt.textContent = w.name;
+            if (w.name === selectedWard) opt.selected = true;
+            select.appendChild(opt);
+        });
+    } catch (e) {
+        console.error("Lỗi load wards:", e);
+    }
+}
+
+// ==========================
+// Load shop info từ BE
+// ==========================
 async function loadShopInfo() {
     try {
         const response = await apiCall('/shop/myShop', 'GET');
-        
         if (response.success && response.data) {
             const shop = response.data;
-            
-            // Điền thông tin vào form
+
             document.getElementById('shopName').value = shop.shopName || '';
             document.getElementById('shopDescription').value = shop.shopDescription || '';
-            document.getElementById('shopAddress').value = shop.shopAddress || '';
-            
-            // Hiển thị logo nếu có
+            document.getElementById('streetAddress').value = shop.streetAddress || '';
+
+            // Logo
             const logoImage = document.getElementById('logoImage');
             const noLogoText = document.getElementById('noLogoText');
-            
             if (shop.shopLogoUrl) {
                 logoImage.src = shop.shopLogoUrl;
                 logoImage.style.display = 'block';
@@ -37,19 +93,33 @@ async function loadShopInfo() {
                 logoImage.style.display = 'none';
                 noLogoText.style.display = 'block';
             }
-            
-            // Hiển thị trạng thái
+
+            // Trạng thái
             const statusElement = document.getElementById('shopStatus');
             statusElement.textContent = getStatusText(shop.status);
             statusElement.className = `shop-status status-${shop.status?.toLowerCase() || 'inactive'}`;
-            
-            // Hiển thị ngày tạo và cập nhật
+
+            // Ngày tạo/cập nhật
             document.getElementById('createdAt').textContent = formatDate(shop.createdAt) || 'Chưa có thông tin';
             document.getElementById('updatedAt').textContent = formatDate(shop.updatedAt) || 'Chưa có thông tin';
-            
-            // Hiển thị tên người dùng nếu có
+
+            // Username
             const username = localStorage.getItem('username') || 'Seller';
             document.getElementById('username-display').textContent = `Xin chào, ${username}`;
+
+            // Load địa chỉ VN
+            await loadProvinces(shop.province);
+            const provinceSelect = document.getElementById("province");
+            const selectedProvince = provinceSelect.options[provinceSelect.selectedIndex];
+            if (selectedProvince && selectedProvince.value) {
+                await loadDistricts(selectedProvince.value, shop.district);
+                const districtSelect = document.getElementById("district");
+                const selectedDistrict = districtSelect.options[districtSelect.selectedIndex];
+                if (selectedDistrict && selectedDistrict.value) {
+                    await loadWards(selectedDistrict.value, shop.ward);
+                }
+            }
+
         } else {
             showNotification('Không thể tải thông tin shop: ' + (response.message || 'Lỗi không xác định'), 'error');
         }
@@ -59,117 +129,82 @@ async function loadShopInfo() {
     }
 }
 
-// Chuyển đổi chế độ chỉnh sửa
+// ==========================
+// Toggle Edit
+// ==========================
 function toggleEditMode() {
-    const inputs = document.querySelectorAll('.form-input');
-    const fileInput = document.getElementById('logoFile');
-    const editButton = document.getElementById('editButton');
-    const updateButton = document.getElementById('updateButton');
-    const cancelButton = document.getElementById('cancelButton');
-    
-    // Lưu giá trị hiện tại để có thể hủy
-    window.originalValues = {
-        shopName: document.getElementById('shopName').value,
-        shopDescription: document.getElementById('shopDescription').value,
-        shopAddress: document.getElementById('shopAddress').value
-    };
-    
-    // Bật chế độ chỉnh sửa
-    inputs.forEach(input => input.disabled = false);
-    fileInput.disabled = false;
-    
-    // Ẩn nút chỉnh sửa, hiện nút cập nhật và hủy
-    editButton.style.display = 'none';
-    updateButton.style.display = 'flex';
-    cancelButton.style.display = 'flex';
+    document.querySelectorAll('.form-input').forEach(el => el.disabled = false);
+    document.getElementById('logoFile').disabled = false;
+    document.getElementById('editButton').style.display = 'none';
+    document.getElementById('updateButton').style.display = 'flex';
+    document.getElementById('cancelButton').style.display = 'flex';
 }
 
-// Hủy chỉnh sửa
+// Cancel Edit
 function cancelEdit() {
-    const inputs = document.querySelectorAll('.form-input');
-    const fileInput = document.getElementById('logoFile');
-    const editButton = document.getElementById('editButton');
-    const updateButton = document.getElementById('updateButton');
-    const cancelButton = document.getElementById('cancelButton');
-    
-    // Khôi phục giá trị ban đầu
-    if (window.originalValues) {
-        document.getElementById('shopName').value = window.originalValues.shopName;
-        document.getElementById('shopDescription').value = window.originalValues.shopDescription;
-        document.getElementById('shopAddress').value = window.originalValues.shopAddress;
-    }
-    
-    // Reset file input
-    document.getElementById('logoFile').value = '';
-    document.getElementById('fileName').textContent = 'Chưa có tệp nào được chọn';
-    
-    // Tắt chế độ chỉnh sửa
-    inputs.forEach(input => input.disabled = true);
-    fileInput.disabled = true;
-    
-    // Hiện nút chỉnh sửa, ẩn nút cập nhật và hủy
-    editButton.style.display = 'flex';
-    updateButton.style.display = 'none';
-    cancelButton.style.display = 'none';
+    document.querySelectorAll('.form-input').forEach(el => el.disabled = true);
+    document.getElementById('logoFile').disabled = true;
+    document.getElementById('editButton').style.display = 'flex';
+    document.getElementById('updateButton').style.display = 'none';
+    document.getElementById('cancelButton').style.display = 'none';
 }
 
-// Xử lý gửi form cập nhật
-document.getElementById('shopForm').addEventListener('submit', async function(e) {
+// ==========================
+// Submit update
+// ==========================
+document.getElementById('shopForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-    
+
     const shopName = document.getElementById('shopName').value.trim();
     const shopDescription = document.getElementById('shopDescription').value.trim();
-    const shopAddress = document.getElementById('shopAddress').value.trim();
-    const fileInput = document.getElementById('logoFile');
-    const file = fileInput.files[0];
+    const streetAddress = document.getElementById('streetAddress').value.trim();
+
+    const provinceSelect = document.getElementById("province");
+    const districtSelect = document.getElementById("district");
+    const wardSelect = document.getElementById("ward");
+
+    const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
+    const districtName = districtSelect.options[districtSelect.selectedIndex]?.text || '';
+    const wardName = wardSelect.options[wardSelect.selectedIndex]?.text || '';
+
+    const file = document.getElementById('logoFile').files[0];
     const updateButton = document.getElementById('updateButton');
-    
-    // Validate
+
     if (!shopName) {
         showNotification('Vui lòng nhập tên shop', 'error');
         return;
     }
-    
-    // Kiểm tra kích thước file nếu có
     if (file && file.size > 2 * 1024 * 1024) {
         showNotification('Kích thước logo không được vượt quá 2MB', 'error');
         return;
     }
-    
-    // Chuẩn bị dữ liệu gửi
+
     const formData = new FormData();
-    const requestData = {
-        shopName: shopName,
-        shopDescription: shopDescription,
-        shopAddress: shopAddress
+    const req = {
+        shopName,
+        shopDescription,
+        streetAddress,
+        province: provinceName,
+        district: districtName,
+        ward: wardName
     };
-    
-    formData.append('req', JSON.stringify(requestData));
-    if (file) {
-        formData.append('file', file);
-    }
-    
-    // Vô hiệu hóa nút cập nhật
+    formData.append("req", JSON.stringify(req));
+    if (file) formData.append("file", file);
+
     updateButton.disabled = true;
     updateButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang cập nhật';
-    
+
     try {
-        // Gọi API cập nhật shop
         const response = await apiCall('/shop', 'PUT', formData, { isFormData: true });
-        
         if (response.success) {
             showNotification('Cập nhật thông tin shop thành công!', 'success');
-            
-            // Tải lại thông tin shop
             await loadShopInfo();
-            
-            // Quay lại chế độ xem
             cancelEdit();
         } else {
             showNotification('Cập nhật thất bại: ' + (response.message || 'Lỗi không xác định'), 'error');
         }
-    } catch (error) {
-        console.error('Lỗi khi cập nhật shop:', error);
+    } catch (err) {
+        console.error("Update error:", err);
         showNotification('Đã xảy ra lỗi khi cập nhật thông tin shop', 'error');
     } finally {
         updateButton.disabled = false;
@@ -177,52 +212,46 @@ document.getElementById('shopForm').addEventListener('submit', async function(e)
     }
 });
 
-// Hiển thị tên file khi chọn
-document.getElementById('logoFile').addEventListener('change', function(e) {
+// ==========================
+// Upload Logo Preview
+// ==========================
+document.getElementById('logoFile').addEventListener('change', function (e) {
     const fileName = e.target.files[0] ? e.target.files[0].name : 'Chưa có tệp nào được chọn';
     document.getElementById('fileName').textContent = fileName;
-    
-    // Xem trước ảnh nếu là file ảnh
     if (e.target.files[0] && e.target.files[0].type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            const logoImage = document.getElementById('logoImage');
-            const noLogoText = document.getElementById('noLogoText');
-            
-            logoImage.src = e.target.result;
-            logoImage.style.display = 'block';
-            noLogoText.style.display = 'none';
+        reader.onload = function (ev) {
+            document.getElementById('logoImage').src = ev.target.result;
+            document.getElementById('logoImage').style.display = 'block';
+            document.getElementById('noLogoText').style.display = 'none';
         };
         reader.readAsDataURL(e.target.files[0]);
     }
 });
 
-// Đăng xuất
+// ==========================
+// Logout
+// ==========================
 function logout() {
     if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-        // Xóa thông tin đăng nhập
         localStorage.removeItem('authToken');
         localStorage.removeItem('username');
-        // Chuyển hướng về trang đăng nhập
         window.location.href = '/login/login.html';
     }
 }
 
-// Hàm utility: Định dạng ngày
+// ==========================
+// Utility
+// ==========================
 function formatDate(dateString) {
     if (!dateString) return null;
-    
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+    const d = new Date(dateString);
+    return d.toLocaleDateString('vi-VN', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
     });
 }
 
-// Hàm utility: Chuyển đổi trạng thái sang tiếng Việt
 function getStatusText(status) {
     switch (status) {
         case 'ACTIVE': return 'HOẠT ĐỘNG';
@@ -233,7 +262,23 @@ function getStatusText(status) {
     }
 }
 
-// Tải thông tin khi trang được tải
-document.addEventListener('DOMContentLoaded', function() {
-    loadShopInfo();
+// ==========================
+// Sự kiện thay đổi province/district
+// ==========================
+document.getElementById("province").addEventListener("change", async function () {
+    const code = this.value;
+    document.getElementById("district").innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+    document.getElementById("ward").innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+    if (code) await loadDistricts(code);
 });
+
+document.getElementById("district").addEventListener("change", async function () {
+    const code = this.value;
+    document.getElementById("ward").innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+    if (code) await loadWards(code);
+});
+
+// ==========================
+// Init
+// ==========================
+document.addEventListener('DOMContentLoaded', loadShopInfo);

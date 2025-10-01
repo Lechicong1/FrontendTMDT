@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giỏ hàng | C-Market</title>
+
+  <!-- CSS chung -->
+  <link rel="stylesheet" href="/component/css/component.css">
+  <!-- CSS riêng cho trang giỏ hàng -->
+  <link rel="stylesheet" href="/Cart/cart.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Style bổ sung cho variant giống productDetails -->
+  <style>
+  .variant-options.hidden {
+    display: none;
+  }
+  .variant-options {
+    margin-top: 5px;
+    display: block;
+  }
+  .breadcrumb {
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+  <!-- Header component -->
+  <div id="header"></div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="container">
+      <a href="/">Trang chủ</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Giỏ hàng</span>
+    </div>
+  </div>
+
+  <!-- Cart Section -->
+  <section class="cart">
+    <div class="container">
+      <h1 class="page-title">Giỏ hàng của bạn</h1>
+      <div class="cart-content" id="cartContent">
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Đang tải giỏ hàng...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer component -->
+  <div id="footer"></div>
+
+  <!-- Scripts -->
+  <script src="/component/js/auth.js"></script>
+  <script>
+    loadComponent("header", "/component/html/header.html");
+    loadComponent("footer", "/component/html/footer.html");
+  </script>
+  <script src="/api.js"></script>
+  <script src="/config.js"></script>
+  <script src="/Cart/cart.js"></script>
+</body>
+</html>

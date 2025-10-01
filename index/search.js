@@ -209,9 +209,9 @@ function renderProducts(products) {
                 <img class="product-image" src="${product.productImage}" alt="${product.name}" 
                      onerror="this.src='https://cf.shopee.vn/file/sg-11134201-23030-xtj9g4h2pylvb7_tn'">
                 <div class="product-info">
-                    <p class="product-name">${product.name}</p>
+                    <p class="product-name">${product.productName}</p>
                     <div class="product-price">
-                        <span class="current-price">${formatPrice(product.price)}đ</span>
+                        <span class="current-price">${formatPrice(product.basePrice)}đ</span>
                     </div>
                     <div class="product-rating">
                         <div class="stars">
@@ -223,7 +223,7 @@ function renderProducts(products) {
                         </div>
                         <span class="rating-count">(999+)</span>
                     </div>
-                    <div class="product-location">${product.shopName || 'Shop'}</div>
+                    <div class="product-location">${product.shop.shopName || 'Shop'}</div>
                 </div>
             </div>`;
     });

@@ -8,20 +8,27 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Một chút style nhỏ cho value + upload */
     .attribute-item { border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 12px; }
     .attribute-header { display:flex; align-items:center; gap:16px; }
     .attribute-header .label-attr { font-weight: 600; }
     .value-inputs .attr-value-item { display:flex; align-items:center; gap:10px; margin:6px 0; }
-    .uploaded-filename { font-size: 12px; color:#666; }
+    .uploaded-filename { font-size: 13px; color:#333; font-weight: 500; margin-top: 8px; }
     .table-container { overflow:auto; }
     .empty-state { text-align:center; padding:20px; color:#777; }
+    .mode-indicator { position: absolute; top: 20px; right: 20px; }
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .status-active { background-color: rgba(40, 167, 69, 0.1); color: #28A745; }
+    .status-inactive { background-color: rgba(220, 53, 69, 0.1); color: #DC3545; }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="mode-indicator">
+      <span id="modeBadge" class="status-badge"></span>
+    </div>
+    
     <header class="page-header">
-      <h1><i class="fas fa-plus-circle"></i> Thêm Sản Phẩm Mới</h1>
+      <h1><i class="fas fa-plus-circle"></i> <span id="pageTitle">Thêm Sản Phẩm Mới</span></h1>
       <p>Quản lý và thêm sản phẩm mới vào cửa hàng của bạn</p>
     </header>
 
@@ -86,52 +93,42 @@
             <i class="fas fa-cloud-upload-alt"></i>
             <p>Kéo thả ảnh vào đây hoặc <span>chọn tệp</span></p>
             <small>Hỗ trợ: JPG, PNG, GIF (tối đa 5MB mỗi ảnh)</small>
-            <input type="file" id="productImage" accept="image/*" />
+            <input type="file" id="productImage" accept="image/*" onchange="onProductImageChange(this)" />
+            <input type="hidden" id="productImageName" />
           </div>
-          <div id="imagePreview" class="image-preview"></div>
+          <div id="imagePreview" class="uploaded-filename">Chưa có ảnh</div>
         </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" onclick="resetForm()">
-          <i class="fas fa-redo"></i> Làm mới
-        </button>
-        <button type="button" class="btn btn-primary" onclick="submitProduct()">
-          <i class="fas fa-save"></i> Lưu và tiếp tục
-        </button>
       </div>
     </div>
 
     <!-- TAB: ATTRIBUTE -->
-   <div id="attribute" class="tab-content">
-  <div class="form-section">
-    <h2><i class="fas fa-list-ul"></i> Quản lý thuộc tính</h2>
-    <p class="section-description">Chọn và nhập giá trị cho các thuộc tính đã được hệ thống định nghĩa</p>
-    
-    <div id="attributeArea" class="attribute-area">
-      <div class="empty-state">
-        <i class="fas fa-list-alt"></i>
-        <p>Đang tải thuộc tính...</p>
+    <div id="attribute" class="tab-content">
+      <div class="form-section">
+        <h2><i class="fas fa-list-ul"></i> Quản lý thuộc tính</h2>
+        <p class="section-description">Chọn và nhập giá trị cho các thuộc tính đã được hệ thống định nghĩa</p>
+        <div id="attributeArea" class="attribute-area">
+          <div class="empty-state">
+            <i class="fas fa-list-alt"></i>
+            <p>Đang tải thuộc tính...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="showTab('product')">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </button>
+        <button type="button" class="btn btn-primary" onclick="generateVariants()">
+          <i class="fas fa-cogs"></i> Tạo biến thể
+        </button>
       </div>
     </div>
-  </div>
-
-  <div class="form-actions">
-    <button type="button" class="btn btn-secondary" onclick="showTab('product')">
-      <i class="fas fa-arrow-left"></i> Quay lại
-    </button>
-    <button type="button" class="btn btn-primary" onclick="generateVariants()">
-      <i class="fas fa-cogs"></i> Tạo biến thể
-    </button>
-  </div>
-</div>
-
 
     <!-- TAB: VARIANT -->
     <div id="variant" class="tab-content">
       <div class="form-section">
         <h2><i class="fas fa-layer-group"></i> Quản lý biến thể</h2>
-        <p class="section-description">Các biến thể sinh theo tổ hợp thuộc tính. Ảnh sẽ dùng chung theo giá trị của thuộc tính bạn đã chọn “Dùng làm ảnh”.</p>
+        <p class="section-description">Các biến thể sinh theo tổ hợp thuộc tính. Ảnh sẽ dùng chung theo giá trị của thuộc tính bạn đã chọn "Dùng làm ảnh".</p>
 
         <div class="table-container">
           <table id="variantTable">
@@ -163,7 +160,7 @@
         <button type="button" class="btn btn-secondary" onclick="showTab('attribute')">
           <i class="fas fa-arrow-left"></i> Quay lại
         </button>
-        <button type="button" class="btn btn-success" onclick="submitVariants()">
+        <button type="button" class="btn btn-success" onclick="submitProduct()">
           <i class="fas fa-check-circle"></i> Hoàn tất
         </button>
       </div>
