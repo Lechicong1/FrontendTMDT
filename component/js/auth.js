@@ -86,3 +86,41 @@ async function loadComponent(id, file) {
     console.error(`Lỗi khi load component ${id} từ ${file}:`, err);
   }
 }
+// Hàm cập nhật số lượng giỏ hàng trên header
+async function updateCartCount() {
+  const cartCountElement = document.getElementById('cartCount');
+  if (!cartCountElement) return;
+  
+  const userInfo = localStorage.getItem('Info');
+  if (!userInfo) {
+    cartCountElement.textContent = '0';
+    return;
+  }
+  
+  try {
+    const userData = JSON.parse(userInfo);
+    const res = await fetch(`${window.Base_Url}/Cart`, {
+      headers: {
+        'Authorization': `Bearer ${userData.token}`
+      }
+    });
+    
+    const data = await res.json();
+    
+    if (data.success && data.data) {
+      const totalItems = data.data.reduce((sum, item) => sum + item.quantityOrdered, 0);
+      cartCountElement.textContent = totalItems;
+    } else {
+      cartCountElement.textContent = '0';
+    }
+  } catch (error) {
+    console.error("❌ Lỗi khi cập nhật số lượng giỏ hàng:", error);
+    cartCountElement.textContent = '0';
+  }
+}
+
+// Gọi hàm này sau khi đăng nhập thành công
+function onLoginSuccess() {
+  updateCartCount();
+  // Các xử lý khác sau khi đăng nhập
+}

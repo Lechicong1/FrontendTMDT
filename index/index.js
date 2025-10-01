@@ -26,6 +26,7 @@ async function loadCategories() {
             }
         });
         const data = await response.json();
+        console.log(data.data)
         if (data.success && Array.isArray(data.data)) {
             categories = data.data;
             renderCategories(data.data);
@@ -73,32 +74,45 @@ function renderCategories(categories) {
 
 // Hàm tải sản phẩm
 async function loadProducts() {
-    const container = document.getElementById('products-container');
-    container.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
+  const container = document.getElementById('products-container');
+  container.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
+
+  try {
+    const params = new URLSearchParams({
+      page: currentPage,   // backend của bạn đã cộng/trừ để page bắt đầu từ 1
+      size: currentSize,
+      sortBy: currentSort   // chú ý BE đang nhận sortOption, không phải sortBy
+    });
+
+    if (currentCategory) params.append('categoryId', currentCategory);
+    if (currentAddress) params.append('shopAddress', currentAddress);
+    if (currentSearch) params.append('nameProduct', currentSearch); // backend field: productName
+
+    const res = await fetch(`http://localhost:8080/product?${params}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
     
-    try {
-        const params = new URLSearchParams({
-            page: currentPage, // Gửi trang bắt đầu từ 1
-            size: currentSize,
-            sortBy: currentSort
-        });
-        
-        if (currentCategory) params.append('categoryId', currentCategory);
-        if (currentAddress) params.append('shopAddress', currentAddress);
-        if (currentSearch) params.append('name', currentSearch);
-        
-        const response = await apiCall(`/product?${params}`, 'GET');
-        
-        if (response.success && response.data) {
-            renderProducts(response.data.content);
-            renderPagination(response.data);
-        } else {
-            container.innerHTML = '<div class="empty">Không có sản phẩm nào</div>';
-        }
-    } catch (error) {
-        console.error('Lỗi khi tải sản phẩm:', error);
-        container.innerHTML = '<div class="empty">Đã xảy ra lỗi khi tải sản phẩm</div>';
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
+
+    const response = await res.json();
+    console.log("call api " ,`http://localhost:8080/product?${params}` )
+    console.log("data" , response.data.content)
+    if (response.success && response.data) {
+      renderProducts(response.data.content);
+      renderPagination(response.data);
+    } else {
+      container.innerHTML = '<div class="empty">Không có sản phẩm nào</div>';
+    }
+  } catch (error) {
+    console.error('❌ Lỗi khi tải sản phẩm:', error);
+    container.innerHTML = '<div class="empty">Đã xảy ra lỗi khi tải sản phẩm</div>';
+  }
 }
 
 // Hiển thị sản phẩm
@@ -113,13 +127,14 @@ function renderProducts(products) {
     let html = '';
     products.forEach(product => {
         html += `
-            <div class="product-card">
+            <div class="product-card" data-product-id="${product.id}">
                 <div class="product-badge">Mới</div>
-                <img class="product-image" src="${product.productImage}" alt="${product.name}" onerror="this.src='https://cf.shopee.vn/file/sg-11134201-23030-xtj9g4h2pylvb7_tn'">
+                <img class="product-image" src="${product.productImage}" alt="${product.productName}" 
+                     onerror="this.src='https://cf.shopee.vn/file/sg-11134201-23030-xtj9g4h2pylvb7_tn'">
                 <div class="product-info">
-                    <p class="product-name">${product.name}</p>
+                    <p class="product-name">${product.productName}</p>
                     <div class="product-price">
-                        <span class="current-price">${formatPrice(product.price)}đ</span>
+                        <span class="current-price">${formatPrice(product.basePrice)}đ</span>
                     </div>
                     <div class="product-rating">
                         <div class="stars">
@@ -131,13 +146,28 @@ function renderProducts(products) {
                         </div>
                         <span class="rating-count">(999+)</span>
                     </div>
-                    <div class="product-location">${product.shopName || 'Shop'}</div>
+                    <div class="product-location">${product.shop?.shopName || 'Shop'}</div>
                 </div>
             </div>
         `;
     });
     
     container.innerHTML = html;
+
+    // Gắn sự kiện click cho từng sản phẩm
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const productId = card.getAttribute('data-product-id');
+            if (productId) {
+                goToProductDetail(productId);
+            }
+        });
+    });
+}
+
+// Hàm redirect sang trang chi tiết
+function goToProductDetail(productId) {
+    window.location.href = `/product/productDetails.html?id=${productId}`;
 }
 
 // Hiển thị phân trang
